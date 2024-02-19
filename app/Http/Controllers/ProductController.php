@@ -204,7 +204,3 @@ class ProductController extends Controller
     }
 }
 
-
-//あまり関連しないものについてはかかない。
-//関連しているものだけ。
-//機能ごとに分ける場合もある。画面ごとに分ける場合もある。

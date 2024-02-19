@@ -44,7 +44,7 @@
             <input id="img_path" type="file" name="img_path" class="form-control">
         </div>
 
-        <button type="submit" onclick="location.href='{{ route('products.index') }}'" class="btn-primary">新規登録</button>
+        <button type="submit" class="btn-primary">新規登録</button>
     </form>
 
     <a href="{{ route('products.index') }}" class="btn btn-primary mb-3">戻る</a>

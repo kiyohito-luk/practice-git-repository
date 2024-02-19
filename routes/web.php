@@ -45,7 +45,9 @@ Route::get('/products/{product}','App\Http\Controllers\ProductController@show')-
 // 商品情報編集画面の表示　routing確認済み
 Route::get('/products/{product}/edit','App\Http\Controllers\ProductController@edit')->name('products.edit');
 
+//作成
+Route::post('/products','App\Http\Controllers\ProductController@store')->name('products.store');
 //更新
-// Route::get('/products/{product}','App\Http\Controllers\ProductController@update')->name('products.update');
+Route::put('/products/{product}','App\Http\Controllers\ProductController@update')->name('products.update');
 //削除
-// Route::get('/products/{product}','App\Http\Controllers\ProductController@destroy')->name('products.destroy');
+Route::delete('/products/{product}','App\Http\Controllers\ProductController@destroy')->name('products.destroy');
