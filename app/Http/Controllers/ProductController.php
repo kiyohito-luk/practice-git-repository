@@ -29,9 +29,8 @@ class ProductController extends Controller
         $companies = Company::all();
 
         $keyword = $request->input('keyword');
-        $company = $request->input('company_id');
+        $company = $request->input('company_name');
 
-        // dd($company);
 
         $query->join('companies', function ($query) use ($request){
             $query->on('products.company_id', '=', 'companies.id');
@@ -42,7 +41,7 @@ class ProductController extends Controller
         }
 
         if(isset($company)){
-            $query->where('company_id', "{$company}");
+            $query->where('company_id', $company);
         }
 
         
@@ -87,11 +86,11 @@ class ProductController extends Controller
             DB::beginTransaction();
     
             $product = new Product([
-                'product_name' => $request->get('product_name'),
-                'company_id' => $request->get('company_id'),
-                'price' => $request->get('price'),
-                'stock' => $request->get('stock'),
-                'comment' => $request->get('comment'),
+                'product_name' => $request->input('product_name'),
+                'company_id' => $request->input('company_id'),
+                'price' => $request->input('price'),
+                'stock' => $request->input('stock'),
+                'comment' => $request->input('comment'),
             ]);
     
             if($request->hasFile('img_path')){
@@ -104,13 +103,13 @@ class ProductController extends Controller
 
             DB::commit();
 
-            return redirect()->route('products.list');
+            
 
         } catch (\Exception $e) {
             DB::rollback();
 
         }
-        
+        return redirect()->route('products.index');
 
         
     }
@@ -123,6 +122,8 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
+
+        dump($product);
         if ($product === null) {
             echo('詳細');
             abort(404, 'Product not found');
