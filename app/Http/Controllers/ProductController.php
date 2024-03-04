@@ -49,8 +49,7 @@ class ProductController extends Controller
                 $filePath = $request->img_path->storeAs('products', $fileName, 'public');
                 $product->img_path = '/storage/' . $filePath;
             }
-
-
+            
             $product->save();
 
             return redirect()->route('products.index')->with('success', 'Product created successfully!');
