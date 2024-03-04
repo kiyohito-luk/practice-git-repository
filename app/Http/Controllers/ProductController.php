@@ -5,60 +5,32 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-
-     
+    
      public function __construct()
      {
          $this->middleware('auth');
      }
      
 
-    public function index(Request $request)
-    {   
-        $query = Product::query();
+     public function index(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        $company = $request->input('company_name');
+
+        $products = Product::search($keyword, $company);
         $companies = Company::all();
 
-        $keyword = $request->input('keyword');
-        $company = $request->input('company_id');
-
-        // dd($company);
-
-        $query->join('companies', function ($query) use ($request){
-            $query->on('products.company_id', '=', 'companies.id');
-            });
-
-        if(!empty($keyword)){
-            $query->where('product_name', 'LIKE', "%{$keyword}%");
-        }
-
-        if(isset($company)){
-            $query->where('company_id', "{$company}");
-        }
-
-        
-
-        $products = $query->get();
-        $products = $query->paginate(10)->appends($request->all());
-
-        return view('layouts.product_index', compact('products','companies', 'keyword'));
-        //returnの内容はまとめる！！
-        //view配下のパスの選択は（フォルダ名）.（ファイル名）で選択する
+        return view('layouts.product_index', compact('products', 'companies', 'keyword'));
     }
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    
     public function create()
     {
         $companies = Company::all();
@@ -66,63 +38,36 @@ class ProductController extends Controller
         return view('layouts.product_create', compact('companies'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    
     public function store(Request $request)
     {
-        $request->validate([
-            'product_name' => 'required',
-            'company_id' => 'required',
-            'price' => 'required',
-            'stock' => 'required',
-            'comment' => 'nullable',
-            'img_path' => 'nullable|image|max:2048',
-        ]);
+        try {
+            $product = Product::storeProduct($request->all());
 
-        try{
-            DB::beginTransaction();
-    
-            $product = new Product([
-                'product_name' => $request->get('product_name'),
-                'company_id' => $request->get('company_id'),
-                'price' => $request->get('price'),
-                'stock' => $request->get('stock'),
-                'comment' => $request->get('comment'),
-            ]);
-    
-            if($request->hasFile('img_path')){
-                $filename = $request->img_path->getClientOriginalName();
-                $filePath = $request->img_path->storeAs('products',$filename,'public');
+            if ($request->hasFile('img_path')) {
+                $fileName = $request->img_path->getClientOriginalName();
+                $filePath = $request->img_path->storeAs('products', $fileName, 'public');
                 $product->img_path = '/storage/' . $filePath;
             }
-    
+
+
             $product->save();
 
-            DB::commit();
+            return redirect()->route('products.index')->with('success', 'Product created successfully!');
 
-            return redirect()->route('products.list');
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->validator)->withInput();
 
         } catch (\Exception $e) {
-            DB::rollback();
-
+            report($e);
+            return back()->with('error', 'An error occurred while creating the product.');
         }
-        
-
-        
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+
     public function show(Product $product)
     {
+
         if ($product === null) {
             echo('詳細');
             abort(404, 'Product not found');
@@ -131,12 +76,7 @@ class ProductController extends Controller
         return view('layouts.product_detail', compact('product'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function edit(Product $product)
     {
         $companies = Company::all();
@@ -144,48 +84,37 @@ class ProductController extends Controller
         return view('layouts.product_edit', compact('product', 'companies'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Product $product)
+   
+    public function update(Product $product, Request $request)
     {
         try{
-            DB::beginTransaction();
 
-            $request->validate([
-                'product_name' => 'required',
-                'price' => 'required',
-                'stock' => 'required',
-            ]);
+            $product->updateProduct($request);
 
-            $product->product_name = $request->product_name;
-            $product->price = $request->price;
-            $product->stock = $request->stock;
+            if ($request->hasFile('img_path')) {
+                if($product->img_path){
+                    Storage::delete($product->img_path);
+                }
+                $filename = $request->img_path->getClientOriginalName();
+                $filePath = $request->img_path->storeAs('products', $filename, 'public');
+                $product->img_path = '/storage/' . $filePath;
+            }
 
             $product->save();
 
-            DB::commit();
-        } catch (\Exception $e){
-            DB::rollback();
-            Log::error($e);
-        }
-        
+            return redirect()->route('products.index')->with('success', 'Product updated successfully!');
 
-        return redirect()->route('products.index')
-            ->with('success', 'Product updated successfully');
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->validator)->withInput();
+
+        } catch (\Exception $e) {
+            report($e);
+            return back()->with('error', 'An error occurred while creating the product.');
+        }
 
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    
     public function destroy(Product $product)
     {
         try{
