@@ -15,13 +15,16 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('company_id');
+            $table->unsignedBigInteger('company_id');
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->string('product_name');
             $table->string('price');
             $table->string('stock');
             $table->text('comment')->nullable();
             $table->string('img_path');
             $table->timestamps();
+
+
         });
     }
 
