@@ -38,6 +38,8 @@ Route::get('/home', [App\Http\Controllers\ProductController::class, 'index'])->n
 
 // 商品画面一覧の表示 routing確認済み
 Route::get('/list', 'App\Http\Controllers\ProductController@index')->name('products.index');
+
+
 // 商品新規登録画面の表示　routing確認済み
 Route::get('/create','App\Http\Controllers\ProductController@create')->name('products.create');
 // 商品情報詳細画面の表示　routing確認済み
@@ -45,9 +47,13 @@ Route::get('/products/{product}','App\Http\Controllers\ProductController@show')-
 // 商品情報編集画面の表示　routing確認済み
 Route::get('/products/{product}/edit','App\Http\Controllers\ProductController@edit')->name('products.edit');
 
-//作成
+// 作成
 Route::post('/products','App\Http\Controllers\ProductController@store')->name('products.store');
-//更新
+// 更新
 Route::put('/products/{product}','App\Http\Controllers\ProductController@update')->name('products.update');
-//削除
+// 削除
 Route::delete('/products/{product}','App\Http\Controllers\ProductController@destroy')->name('products.destroy');
+
+
+// ajax表示
+Route::get('/search', 'App\Http\Controllers\ProductController@getProductsBySearchName')->name('products.search');

@@ -59,6 +59,7 @@ class ProductController extends Controller
             return back()->withErrors($e->validator)->withInput();
 
         } catch (\Exception $e) {
+            \Log::error($e);
             report($e);
             return back()->with('error', 'An error occurred while creating the product.');
         }
@@ -130,6 +131,21 @@ class ProductController extends Controller
         
 
         return redirect('/list');
+    }
+
+    public function getProductsBySearchName(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        $company = $request->input('company_name');
+
+        $products = Product::search($keyword, $company);
+        $companies = Company::all();
+
+        return response()->json([
+            'products'=> $products,
+            'companies'=> $companies
+
+        ]);
     }
 }
 
