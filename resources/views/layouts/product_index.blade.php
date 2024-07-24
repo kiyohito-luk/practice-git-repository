@@ -5,7 +5,7 @@
     <header>
         <h1>商品一覧画面</h1>
         <form action="{{ route('products.index') }}" method="GET">
-            <input type="text" placeholder="キーワード" name="keyword" value="{{ $keyword }}">
+            <input type="text" placeholder="キーワード" name="keyword" id="keyword" value="{{ $keyword }}">
             <select name="company_name" id="company_name">
                 <option value="">メーカー名</option>
                 @foreach ($companies as $company)
@@ -13,7 +13,7 @@
                 @endforeach
             </select>
 
-            <button type="submit">検索</button>
+            <button class="search-btn" type="submit">検索</button>
         </form>
     </header>
     <main>
